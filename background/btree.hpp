@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <vector>
 
 #include "file.hpp"
 #include "../common/error.hpp"
@@ -18,6 +19,29 @@ private:
   typedef SKey Key[KSIZE];
   typedef SValue Value[VSIZE];
 
+public:
+  typedef std::vector<SKey> KeyVec;
+  typedef std::vector<SValue> ValVec;
+
+  typedef
+  struct element
+  {
+    KeyVec key;
+    ValVec value;
+  } Element;
+
+  typedef std::vector<Element> List;
+
+  BTree(std::string); // Initialize a new B tree
+  BTree(std::string, size_t); // Initialize a existed B tree
+
+  void traversal(List &);
+  size_t offset() const; // get the offset of root
+  bool insert(Key, Value);
+  bool find(Key, Value);
+  bool remove(Key);
+
+private:
   static const size_t NULLNODE = 0;
   static const size_t D = 1;
   static const size_t MAXDATA = 2 * D;
@@ -54,14 +78,7 @@ private:
   void rebalance(size_t);
   void erase(Node &, size_t);
   bool remove(size_t, Key);
-public:
-  BTree(std::string); // Initialize a new B tree
-  BTree(std::string, size_t); // Initialize a existed B tree
-
-  size_t offset() const; // get the offset of root
-  bool insert(Key, Value);
-  bool find(Key, Value);
-  bool remove(Key);
+  void traversal(size_t, List &);
 };
 
 #define TEMPLATE template <typename SKey, typename SValue, size_t KSIZE, size_t VSIZE>
@@ -572,6 +589,39 @@ void BTREE::erase(Node &node, size_t pos)
   bzero(node.values[node.num - 1], VSIZE * sizeof(SValue));
   node.children[node.num] = 0;
   --node.num;
+}
+
+template<typename T>
+void transfer(std::vector<T> &vec, T *arr, size_t len)
+{
+  vec.clear();
+  for (size_t i = 0; i < len; ++i)
+    vec.push_back(arr[i]);
+}
+
+TEMPLATE
+void BTREE::traversal(List &list)
+{
+  list.clear();
+  traversal(off, list);
+}
+
+TEMPLATE
+void BTREE::traversal(size_t offset, List &list)
+{
+  if (offset == NULLNODE)
+    return;
+  Node node;
+  getNode(offset, node);
+  traversal(node.children[0], list);
+  for (size_t i = 0; i < node.num; ++i)
+    {
+      Element ele;
+      transfer(ele.key, node.keys[i], KSIZE);
+      transfer(ele.value, node.values[i], VSIZE);
+      list.push_back(ele);
+      traversal(node.children[i + 1], list);
+    }
 }
 
 #undef TEMPLATE

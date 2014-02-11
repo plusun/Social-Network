@@ -3,7 +3,7 @@
 
 using namespace std;
 
-/*void printNode(BTree<size_t, size_t, 1, 1>::Node &node)
+void printNode(BTree<size_t, size_t, 1, 1>::Node &node)
   {
   cout << "num: " << node.num << endl;
   cout << "datas: " << endl;
@@ -15,7 +15,6 @@ using namespace std;
   cout << endl;
   cout << "parent: " << node.parent << endl;
   }
-*/
 int main(void)
 {
   /*
@@ -82,7 +81,9 @@ int main(void)
     cout << arr[0] << arr[1] << arr[2] << endl;
   */
   BTree<size_t, size_t, 1, 1> t("test.dat");
+  BTree<size_t, size_t, 1, 1>::List list;
   size_t a[1], b[1];
+
 
   size_t N(100000);
 
@@ -145,7 +146,6 @@ int main(void)
 
   size_t off = t.offset();
   BTree<size_t, size_t, 1, 1> tt("test.dat", off);
-
   
   for (size_t i = 1; i < N; ++i)
     {
@@ -161,13 +161,18 @@ int main(void)
 	  cout << "Error: " << a[0] << ", " << b[0] << endl;
 	}
     }
-  /*
-    size_t a[1], b[1];
-    a[0] = 6; b[0] = 13;
-    BTree<size_t, size_t, 1, 1> tt("test.dat", 288);
-    tt.insert(a, b);
-    
-    off = 0;
+
+  a[0] = 234;
+  b[0] = 337;
+  tt.insert(a, b);
+  b[0] = 0;
+  tt.find(a, b);
+  cout << b[0] << endl;
+  tt.traversal(list);
+  for (size_t i = 0; i < list.size(); ++i)
+    cout << list[i].key[0] << ": " << list[i].value[0] << endl;
+
+  /*    off = 0;
     while (off < tt.fileEnd())
     {
     BTree<size_t, size_t, 1, 1>::Node node;
@@ -176,8 +181,15 @@ int main(void)
     printNode(node);
     cout << endl;
     off += sizeof(node);
-    } */
+    } 
+  */
 
+  /*
+    size_t a[1], b[1];
+    a[0] = 6; b[0] = 13;
+    BTree<size_t, size_t, 1, 1> tt("test.dat", 288);
+    tt.insert(a, b);
+  */
   BTree<char, size_t, 3, 2> tree("test.dat");
   char key[] = {'h', 'e', '\0'};
   size_t value[] = {3, 4};

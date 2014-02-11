@@ -1,10 +1,10 @@
 #ifndef _USER_DATA_
 #define _USER_DATA_
 
-#include <cstddef>
 #include <fstream>
 
 const size_t MAXLEN = 140;
+const size_t MAXACC = (size_t)-1;
 
 typedef char String[MAXLEN];
 typedef enum {male, female} Gender;

@@ -1,4 +1,4 @@
-OBJ = client.o user.o date.o error.o userInfo.o file.o
+OBJ = client.o user.o date.o error.o userInfo.o file.o relation.o
 CC = g++
 FLAGS = -Wall -g
 
@@ -17,11 +17,14 @@ date.o: ../common/date.hpp ../common/date.cpp
 userInfo.o: ../background/userInfo.hpp ../background/userInfo.cpp
 	(cd ../background; make userInfo.o)
 	cp ../background/userInfo.o .
+relation.o: ../background/relation.hpp ../background/relation.cpp
+	(cd ../background; make relation.o)
+	cp ../background/relation.o .
 file.o: ../background/file.hpp ../background/file.cpp
 	(cd ../background; make file.o)
 	cp ../background/file.o .
 tidy:
-	@rm -f *~ $(OBJ)
+	@rm -f *~ $(OBJ) *.dat
 .PHONY: clean
 clean:
-	@rm -f *~ $(OBJ) client
+	@rm -f *~ $(OBJ) client *.dat

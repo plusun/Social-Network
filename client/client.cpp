@@ -8,17 +8,18 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <vector>
 
 using std::cout;
 using std::endl;
 using std::cin;
 using std::flush;
 using std::string;
+using std::vector;
 
 const char * PROMPT = "# ";
 const char * INDENT = "  * ";
 
-enum Order{HELP, INFO, PW, ADDRESS, BIRTH, TELE, GENDER, CLOSE, QUIT, NONE};
 
 string getUserName(void);
 string getPassword(void);
@@ -225,7 +226,9 @@ void createUser(const std::string &name, User &user)
     cout << "Creating account failed. :(" << endl;
 }
 
-string LIST[] = {"help", "info", "pw", "address", "birth", "tele", "gender", "close", "quit", ""};
+string LIST[] = {"help", "info", "pw", "address", "birth", "tele", "gender", "close", "quit",
+		 "follow", "unfollow", "follower", "following", ""};
+enum Order{HELP, INFO, PW, ADDRESS, BIRTH, TELE, GENDER, CLOSE, QUIT, FOLLOW, UNFOLLOW, FOLLOWER, FOLLOWING, NONE};
 
 Order getOrder(const string &order)
 {
@@ -238,6 +241,7 @@ Order getOrder(const string &order)
 void doOrder(string input, User &user)
 {
   string old, pw;
+  vector<string> list;
   switch (getOrder(input))
     {
     case HELP:
@@ -266,6 +270,42 @@ void doOrder(string input, User &user)
 	cout << INDENT << "Wrong old password! :(" << endl;
       else
 	cout << INDENT << "Changed successfully! :)" << endl;
+      break;
+    case FOLLOW:
+      cout << INDENT << "Who: " << flush;
+      old = getUserName();
+      if (!user.follow(old))
+	cout << INDENT << "Failed. :(" << endl;
+      else
+	cout << INDENT << "Success! :)" << endl;
+      break;
+    case UNFOLLOW:
+      cout << INDENT << "Who: " << flush;
+      old = getUserName();
+      if (!user.unfollow(old))
+	cout << INDENT << "Failed. :(" << endl;
+      else
+	cout << INDENT << "Success! :)" << endl;
+      break;
+    case FOLLOWER:
+      list = user.follower();
+      if (list.size() > 0)
+	{
+	  cout << list[0] << flush;
+	  for (size_t i = 1; i < list.size(); ++i)
+	    cout << ", " << list[i] << flush;
+	  cout << endl;
+	}
+      break;
+    case FOLLOWING:
+      list = user.following();
+      if (list.size() > 0)
+	{
+	  cout << list[0] << flush;
+	  for (size_t i = 1; i < list.size(); ++i)
+	    cout << ", " << list[i] << flush;
+	  cout << endl;
+	}
       break;
     case ADDRESS:
       changeAddress(user);

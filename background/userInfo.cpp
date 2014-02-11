@@ -1,29 +1,54 @@
 #include "userInfo.hpp"
 #include "file.hpp"
+#include "../common/error.hpp"
+#include "btree.hpp"
+#include "relation.hpp"
+
 #include <fstream>
 #include <cstring>
 #include <iostream>
-#include "../common/error.hpp"
+#include <strings.h>
 
 using std::ios_base;
 using std::fstream;
 using std::ifstream;
 using std::ofstream;
 using std::ofstream;
+using std::vector;
+using std::string;
 
-const char *userFile = "user.dat";
-const char *indexFile = "index.dat";
-const char *followerFile = "follower.dat";
-const char *followingFile = "following.dat";
-const size_t MAXACC = (size_t)-1;
-
-UserInfo::UserInfo(): pos(MAXACC) {}
+UserInfo::UserInfo(): pos(MAXACC)
+{
+  fstream index;
+  if (!openOrCreate(index, indexFile, ios_base::in | ios_base::out))
+    throw Error("Error on openning index file.");
+  index.seekg(0);
+  size_t n = MAXACC;
+  index.read((char *)&n, sizeof n);
+  if (!index || n == MAXACC)
+    {
+      index.clear();
+      n = 0;
+      index.seekp(0);
+      index.write((char *)&n, sizeof n);
+      fstream os;
+      if (!openOrCreate(os, userFile, ios_base::in | ios_base::out))
+	throw Error("File error of user's data!");
+      os.seekp(0);
+      UserData empty;
+      bzero(&empty, sizeof empty);
+      os.write((char *)&empty, sizeof empty);
+      os.close();
+    }
+  index.close();
+}
 
 UserData UserInfo::search(const char *user, size_t &pos)
 {
-  ifstream is;
-  if (!openOrCreate(is, userFile, ios_base::in))
+  fstream is;
+  if (!openOrCreate(is, userFile, ios_base::in | ios_base::out))
     throw Error("File error of user's data!");
+  is.seekg(0);
   UserData read;
   pos = MAXACC;
   do
@@ -60,6 +85,26 @@ bool UserInfo::get(UserData &user)
   return false;
 }
 
+bool UserInfo::get(size_t pos, UserData &user)
+{
+  fstream is;
+  if (!openOrCreate(is, userFile, ios_base::in | ios_base::out))
+    throw Error("Error on openning user's data file!");
+  is.seekg(pos * sizeof user);
+  is.read((char *)&user, sizeof user);
+  if (!is)
+    {
+      is.close();
+      return false;
+    }
+  else
+    {
+      is.close();
+      return true;
+    }
+
+}
+
 bool UserInfo::newAccount(UserData &user)
 {
   search(user.user, pos);
@@ -76,7 +121,7 @@ bool UserInfo::newAccount(UserData &user)
   index.read((char *)&n, sizeof n);
   if (!index)
     {
-      n = MAXACC;
+      n = 0;
       index.clear();
     }
 
@@ -85,9 +130,11 @@ bool UserInfo::newAccount(UserData &user)
   if (n >= MAXACC)
     throw Error("Too many users!");
 
-  ofstream os;
-  if (!openOrCreate(os, userFile, ios_base::out | ios_base::app))
+  fstream os;
+  if (!openOrCreate(os, userFile, ios_base::in | ios_base::out | ios_base::app))
     throw Error("File error of user's date(write)!");
+
+  os.seekp(user.off * sizeof user);
 
   os.write((char *)&user, sizeof user);
   os.close();
@@ -112,12 +159,22 @@ bool UserInfo::alter(UserData &user)
 {
   if (!valid())
     return false;
-  ofstream os;
-  if (!openOrCreate(os, userFile, ios_base::out))
+  UserData another;
+  memcpy(another.user, user.user, MAXLEN * sizeof(char));
+  if (!get(pos, another))
+    return false;
+  user.off = another.off;
+  user.message = another.message;
+  user.follower = another.follower;
+  user.following = another.following;
+  fstream os;
+  if (!openOrCreate(os, userFile, ios_base::in | ios_base::out))
     throw Error("Error on opening user's data file!");
   os.seekp(pos * sizeof user);
   os.write((char *)&user, sizeof user);
-  return !!os;
+  bool value = !!os;
+  os.close();
+  return value;
 }
 
 bool UserInfo::remove(const char *name)
@@ -142,3 +199,53 @@ bool UserInfo::valid()
   return pos != MAXACC;
 }
 
+bool UserInfo::follow(const char *name)
+{
+  size_t p;
+  UserData user = search(name, p);
+  return (p != MAXACC) && Relation::follow(pos, p);
+}
+
+bool UserInfo::unfollow(const char *name)
+{
+  size_t p;
+  search(name, p);
+  return (p != MAXACC) && Relation::unfollow(pos, p);
+}
+
+vector<string> UserInfo::follower()
+{
+  vector<string> list;
+  UserData user;
+  
+  if (!get(pos, user) || user.follower == MAXACC)
+    return list;
+  BTree<size_t, char, 1, 1> tree(followerFile, user.follower);
+  BTree<size_t, char, 1, 1>::List l;
+  tree.traversal(l);
+  for (size_t i = 0; i < l.size(); ++i)
+    if (l[i].key[0] > 0)
+      {
+	get(l[i].key[0], user);
+	list.push_back(string(user.user));
+      }
+  return list;
+}
+
+vector<string> UserInfo::following()
+{
+  vector<string> list;
+  UserData user;
+  if (!get(pos, user) || user.following == MAXACC)
+    return list;
+  BTree<size_t, char, 1, 1> tree(followingFile, user.following);
+  BTree<size_t, char, 1, 1>::List l;
+  tree.traversal(l);
+  for (size_t i = 0; i < l.size(); ++i)
+    if (l[i].key[0] > 0)
+      {
+	get(l[i].key[0], user);
+	list.push_back(string(user.user));
+      }
+  return list;
+}

@@ -3,6 +3,7 @@
 #include "../background/userInfo.hpp"
 
 using std::string;
+using std::vector;
 
 string User::encrypt(const std::string &raw)
 {
@@ -218,4 +219,24 @@ bool User::exist(const string &name)
 {
   const char *tmp = name.c_str();
   return server.exist(tmp);
+}
+
+bool User::follow(const string &name)
+{
+  return server.follow(name.c_str());
+}
+
+bool User::unfollow(const string &name)
+{
+  return server.unfollow(name.c_str());
+}
+
+vector<string> User::follower()
+{
+  return server.follower();
+}
+
+vector<string> User::following()
+{
+  return server.following();
 }

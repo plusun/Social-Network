@@ -1,10 +1,12 @@
 CC = g++
 FLAGS = -Wall -g
-OBJ = userInfo.o file.o
+OBJ = userInfo.o file.o relation.o
 
-userInfo.o: ../common/userData.hpp userInfo.hpp userInfo.cpp ../common/error.hpp file.hpp
+userInfo.o: ../common/userData.hpp userInfo.hpp userInfo.cpp ../common/error.hpp file.hpp relation.hpp btree.hpp
 	$(CC) $(FLAGS) -c userInfo.cpp
 file.o: file.cpp file.hpp
+	$(CC) $(FLAGS) -c $<
+relation.o: relation.cpp relation.hpp file.hpp ../common/userData.hpp ../common/error.hpp btree.hpp
 	$(CC) $(FLAGS) -c $<
 error.o: ../common/error.hpp ../common/error.cpp
 	(cd ../common; make error.o)

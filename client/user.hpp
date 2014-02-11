@@ -2,6 +2,7 @@
 #define _USER_
 
 #include <string>
+#include <vector>
 #include "../common/date.hpp"
 #include "../common/userData.hpp"
 #include "../background/userInfo.hpp"
@@ -32,6 +33,10 @@ public:
   bool newAccount(const std::string &, const std::string &);
   bool open(const std::string &, const std::string &);
   bool exist(const std::string &);
+  bool follow(const std::string &);
+  bool unfollow(const std::string &);
+  std::vector<std::string> follower();
+  std::vector<std::string> following();
 private:
   std::string encrypt(const std::string &);
   std::string user, pw; // name and password

@@ -1,7 +1,12 @@
-#ifndef _OPEN_FILE_
-#define _OPEN_FILE_
+#ifndef _FILE_
+#define _FILE_
 
 #include <fstream>
+
+static const char *userFile = "user.dat";
+static const char *indexFile = "index.dat";
+static const char *followerFile = "follower.dat";
+static const char *followingFile = "following.dat";
 
 // open or create a input file
 bool openOrCreate(std::ifstream &stream, const char *file, std::ios_base::openmode bit);
