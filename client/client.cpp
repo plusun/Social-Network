@@ -25,6 +25,7 @@ string getUserName(void);
 string getPassword(void);
 void createUser(const string &, User &);
 void doOrder(string, User &);
+bool checkOK(const string &);
 
 int main(void)
 {
@@ -41,7 +42,7 @@ int main(void)
 	  cout << PROMPT << "User Name: " << flush;
 	  name = getUserName();
 	}
-      while (name.empty());
+      while (name.empty() || !checkOK(name));
       if (*name.begin() == '!')
 	{
 	  name.erase(name.begin());
@@ -96,9 +97,18 @@ int getch (void) // get char without showing the character
   return ch;
 }
 
+bool checkOK(const string &name)
+{
+  for (string::const_iterator itr = name.begin(); itr != name.end(); ++itr)
+    if (!(isalnum(*itr) || ispunct(*itr)))
+      return false;
+  return true;
+}
+
 string getUserName(void)
 {
   string name = "";
+  /*
   char c;
   do
     {
@@ -113,12 +123,14 @@ string getUserName(void)
     }
   while (c != '\n');
   cout << endl;
+  return name;*/
+  getline(cin, name);
   return name;
 }
 
 string getPassword(void)
 {
-  const string PW = "*";
+  const string PW = "";
   string  pw = "";
   char c;
   do
@@ -128,6 +140,10 @@ string getPassword(void)
 	{
 	  pw += c;
 	  cout << PW << flush;
+	}
+      else if (c == '\177')
+	{
+	  pw.erase(pw.end() - 1);
 	}
     }
   while (c != '\n');
