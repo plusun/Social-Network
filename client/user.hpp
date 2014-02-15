@@ -35,6 +35,10 @@ public:
   bool exist(const std::string &);
   bool follow(const std::string &);
   bool unfollow(const std::string &);
+  bool message(const std::string &);
+  bool forward(const Message &);
+  std::vector<Package> list(const size_t &);
+  std::vector<Package> list(const std::string &, const size_t &);
   std::vector<std::string> follower();
   std::vector<std::string> following();
 private:

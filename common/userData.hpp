@@ -19,5 +19,19 @@ struct user
   String tele, addr;
 } UserData;
 
+typedef
+struct message
+{
+  size_t id, next;
+  String user, from;
+} Message;
+
+typedef
+struct package
+{
+  Message info;
+  String content;
+} Package;
+
 #endif
 

@@ -16,11 +16,16 @@ public:
   bool remove(const char *);
   bool follow(const char *);
   bool unfollow(const char *);
+  bool message(const char *);
+  bool forward(const Message &);
+  std::vector<Package> list(size_t);
+  std::vector<Package> list(const char *, size_t);
   std::vector<std::string> follower();
   std::vector<std::string> following();
   bool valid();
 private:
-  bool get(size_t, UserData &);
+  static bool get(size_t, UserData &);
+  static void put(size_t, const UserData &);
   static UserData search(const char *, size_t &pos);
   size_t pos;
 };

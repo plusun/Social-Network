@@ -19,12 +19,13 @@ using std::vector;
 
 const char * PROMPT = "# ";
 const char * INDENT = "  * ";
+const size_t MAXMESSAGES = 10;
 
 
 string getUserName(void);
 string getPassword(void);
 void createUser(const string &, User &);
-void doOrder(string, User &);
+void doOrder(string, User &, vector<Package> &messages);
 bool checkOK(const string &);
 
 int main(void)
@@ -35,6 +36,7 @@ int main(void)
   cout << endl;
   string name;
   User user;
+  vector<Package> messages;
   do
     {
       do
@@ -66,6 +68,7 @@ int main(void)
   while(!user.valid());
   
   cout << endl;
+  
   cout << "Welcome back, " << user.name() << " :)" << endl
        << "You can input 'help' for help." << endl << endl;
   
@@ -74,7 +77,7 @@ int main(void)
     {
       cout << PROMPT << flush;
       getline(cin, order);
-      doOrder(order, user);
+      doOrder(order, user, messages);
     }
   while (true);
 
@@ -243,8 +246,9 @@ void createUser(const std::string &name, User &user)
 }
 
 string LIST[] = {"help", "info", "pw", "address", "birth", "tele", "gender", "close", "quit",
-		 "follow", "unfollow", "follower", "following", ""};
-enum Order{HELP, INFO, PW, ADDRESS, BIRTH, TELE, GENDER, CLOSE, QUIT, FOLLOW, UNFOLLOW, FOLLOWER, FOLLOWING, NONE};
+		 "follow", "unfollow", "follower", "following", "message", "list", "forward", "visit", ""};
+enum Order{HELP, INFO, PW, ADDRESS, BIRTH, TELE, GENDER, CLOSE, QUIT, FOLLOW, UNFOLLOW, FOLLOWER, FOLLOWING,
+	   MESSAGE, LISTS, FORWARD, VISIT, NONE};
 
 Order getOrder(const string &order)
 {
@@ -254,22 +258,30 @@ Order getOrder(const string &order)
   return NONE;
 }
 
-void doOrder(string input, User &user)
+void doOrder(string input, User &user, vector<Package> &messages)
 {
-  string old, pw;
+  string old, pw, content;
+  size_t code;
   vector<string> list;
   switch (getOrder(input))
     {
     case HELP:
-      cout << INDENT << "help:    Print these information" << endl
-	   << INDENT << "info:    Print your information" << endl
-	   << INDENT << "pw:      Change password" << endl
-	   << INDENT << "address: Change your address" << endl
-	   << INDENT << "birth:   Change your birthday" << endl
-	   << INDENT << "tele:    Change your telephone" << endl
-	   << INDENT << "gender:  Change your gender" << endl
-	   << INDENT << "close:   Close this account" << endl
-	   << INDENT << "quit:    Quit" << endl;
+      cout << INDENT << "help:       Print these information" << endl
+	   << INDENT << "info:       Print your information" << endl
+	   << INDENT << "follow:     To follow someone" << endl
+	   << INDENT << "unfoloow:   To unfollow someone" << endl
+	   << INDENT << "following:  Following list" << endl
+	   << INDENT << "follower:   Follower list" << endl
+	   << INDENT << "message:    To publish a message" << endl
+	   << INDENT << "list:       List messages" << endl
+	   << INDENT << "visit:      Visit a user" << endl
+	   << INDENT << "pw:         Change password" << endl
+	   << INDENT << "address:    Change your address" << endl
+	   << INDENT << "birth:      Change your birthday" << endl
+	   << INDENT << "tele:       Change your telephone" << endl
+	   << INDENT << "gender:     Change your gender" << endl
+	   << INDENT << "close:      Close this account" << endl
+	   << INDENT << "quit:       Quit" << endl;
       break;
     case INFO:
       cout << INDENT << "User: " << user.name() << endl;
@@ -307,6 +319,7 @@ void doOrder(string input, User &user)
       list = user.follower();
       if (list.size() > 0)
 	{
+	  cout << INDENT << flush;
 	  cout << list[0] << flush;
 	  for (size_t i = 1; i < list.size(); ++i)
 	    cout << ", " << list[i] << flush;
@@ -317,10 +330,33 @@ void doOrder(string input, User &user)
       list = user.following();
       if (list.size() > 0)
 	{
+	  cout << INDENT << flush;
 	  cout << list[0] << flush;
 	  for (size_t i = 1; i < list.size(); ++i)
 	    cout << ", " << list[i] << flush;
 	  cout << endl;
+	}
+      break;
+    case MESSAGE:
+      cout << INDENT << "What to say: " << flush;
+      getline(cin, content);
+      while (content.length() >= MAXLEN)
+	content.erase(content.length() - 1);
+      if (user.message(content))
+	cout << INDENT << "Success! :)" << endl;
+      else
+	cout << INDENT << "Fail! :(" << endl;
+      break;
+    case LISTS:
+      messages.clear();
+      messages = user.list(MAXMESSAGES);
+      for (size_t i = 0; i < messages.size(); ++i)
+	{
+	  cout << INDENT << messages[i].info.user << ": " << flush
+	       << messages[i].content << flush;
+	  if (strcmp(messages[i].info.user, messages[i].info.from))
+	    cout << " <forwarded from " << messages[i].info.from << ">" << flush;
+	  cout << " (" << i << ")" << endl;
 	}
       break;
     case ADDRESS:
@@ -335,6 +371,15 @@ void doOrder(string input, User &user)
     case GENDER:
       changeGender(user);
       break;
+    case FORWARD:
+      cout << INDENT << "Which(the code following the messages): " << flush;
+      getline(cin, content);
+      code = strtol(content.c_str(), NULL, 10);
+      if (code >= messages.size() || !user.forward(messages[code].info))
+	cout << INDENT << "Fail. :(" << endl;
+      else
+	cout << INDENT << "Success! :)" << endl;
+      break;
     case CLOSE:
       cout << INDENT << "Your password: " << flush;
       pw = getPassword();
@@ -347,6 +392,21 @@ void doOrder(string input, User &user)
 	  getch();
 	  exit(0);
 	}
+      break;
+    case VISIT:
+      cout << INDENT << "Who: " << flush;
+      getline(cin, content);
+      messages.clear();
+      messages = user.list(content, MAXMESSAGES);
+      for (size_t i = 0; i < messages.size(); ++i)
+	{
+	  cout << endl;
+	  cout << INDENT << messages[i].info.user << ": " << flush
+	       << messages[i].content << flush;
+	  if (strcmp(messages[i].info.user, messages[i].info.from))
+	    cout << " <forwarded from " << messages[i].info.from << ">" << flush;
+	  cout << " (" << i << ")" << endl;
+	}      
       break;
     case QUIT:
       cout << "Goodbye. :)" << endl;

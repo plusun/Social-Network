@@ -240,3 +240,23 @@ vector<string> User::following()
 {
   return server.following();
 }
+
+bool User::message(const string &content)
+{
+  return server.message(content.c_str());
+}
+
+vector<Package> User::list(const size_t &number)
+{
+  return server.list(number);
+}
+
+vector<Package> User::list(const string &who, const size_t &number)
+{
+  return server.list(who.c_str(), number);
+}
+
+bool User::forward(const Message &message)
+{
+  return server.forward(message);
+}

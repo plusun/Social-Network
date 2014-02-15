@@ -3,6 +3,7 @@
 #include "../common/error.hpp"
 #include "btree.hpp"
 #include "relation.hpp"
+#include "message.hpp"
 
 #include <fstream>
 #include <cstring>
@@ -248,4 +249,109 @@ vector<string> UserInfo::following()
 	list.push_back(string(user.user));
       }
   return list;
+}
+
+bool UserInfo::message(const char *content)
+{
+  Message mess;
+  mess.id = Pub::message(content);
+  UserData user;
+  if (pos == MAXACC || !get(pos, user))
+    return false;
+  mess.next = user.message;
+  memcpy(mess.user, user.user, MAXLEN);
+  memcpy(mess.from, user.user, MAXLEN);
+  user.message = Pub::store(mess);
+  put(pos, user);
+
+  return true;
+}
+
+bool UserInfo::forward(const Message &message)
+{
+  Message mess;
+  mess.id = message.id;
+  UserData user;
+  if (pos == MAXACC || !get(pos, user) ||
+      strcmp(user.user, message.from) == 0)
+    return false;
+  mess.next = user.message;
+  memcpy(mess.user, user.user, MAXLEN);
+  memcpy(mess.from, message.from, MAXLEN);
+  user.message = Pub::store(mess);
+  put(pos, user);
+  return true;
+}
+
+void UserInfo::put(size_t offset, const UserData &user)
+{
+  fstream os;
+  if (!openOrCreate(os, userFile, ios_base::in | ios_base::out))
+    throw Error("Error on opennning user's data file");
+  os.seekp(offset * sizeof user);
+  os.write((char *)&user, sizeof user);
+  os.close();
+}
+
+vector<Package> UserInfo::list(size_t number)
+{
+  vector<Package> vec;
+  fstream is, content;
+  if (!openOrCreate(is, messageFile, ios_base::in | ios_base::out))
+    throw Error("Error on openning message file!");
+  if (!openOrCreate(content, contentFile, ios_base::in | ios_base::out))
+    throw Error("Error on openning content file!");
+  is.seekg(0, ios_base::end);
+  size_t offset(is.tellg());
+  UserData user;
+  if (pos == MAXACC || !get(pos, user))
+    return vec;
+  BTree<size_t, char, 1, 1> *tree;
+  if (user.following == MAXACC)
+    tree = new BTree<size_t, char, 1, 1>(followingFile);
+  else
+    tree = new BTree<size_t, char, 1, 1>(followingFile, user.following);
+  Message message;
+  Package package;
+  while (offset != 0)
+    {
+      offset -= sizeof message;
+      is.seekg(offset);
+      is.read((char *)&message, sizeof message);
+      size_t pos;
+      search(message.user, pos);
+      size_t id[] = {pos};
+      char tmp[1];
+      if (strcmp(user.user, message.user) == 0 || tree->find(id, tmp))
+	{
+	  content.seekg(message.id);
+	  content.read(package.content, MAXLEN);
+	  memcpy((char *)&package.info, (char *)&message, sizeof message);
+	  vec.push_back(package);
+	}
+    }
+  return vec;
+}
+
+vector<Package> UserInfo::list(const char *who, size_t num)
+{
+  vector<Package> vec;
+  size_t pos;
+  UserData user = search(who, pos);
+  if (pos == MAXACC)
+    return vec;
+  pos = user.message;
+  fstream content;
+  if (!openOrCreate(content, contentFile, ios_base::in | ios_base::out))
+    throw Error("Error on openning content file!");
+  while (pos != MAXACC && vec.size() != num)
+    {
+      Package package;
+      Pub::load(pos, package.info);
+      content.seekg(package.info.id);
+      content.read(package.content, MAXLEN);
+      vec.push_back(package);
+      pos = package.info.next;
+    }
+  return vec;
 }
