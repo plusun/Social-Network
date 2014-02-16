@@ -9,6 +9,7 @@ static const char *followerFile = "follower.dat";
 static const char *followingFile = "following.dat";
 static const char *messageFile = "message.dat";
 static const char *contentFile = "content.dat";
+static const char *snapFile = "snapshot.dat";
 
 // open or create a input file
 bool openOrCreate(std::ifstream &stream, const char *file, std::ios_base::openmode bit);

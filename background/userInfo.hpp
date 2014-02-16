@@ -2,6 +2,7 @@
 #define _USER_INFO_
 
 #include "../common/userData.hpp"
+#include "btree.hpp"
 #include <vector>
 #include <string>
 
@@ -24,6 +25,7 @@ public:
   std::vector<std::string> following();
   bool valid();
 private:
+  typedef BTree<char, size_t, MAXLEN, 1> Tree;
   static bool get(size_t, UserData &);
   static void put(size_t, const UserData &);
   static UserData search(const char *, size_t &pos);

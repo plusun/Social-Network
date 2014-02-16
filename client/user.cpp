@@ -38,6 +38,7 @@ string User::address() const
 UserData User::transfer() const
 {
   UserData u;
+  bzero((char *)&u, sizeof u);
   strcpy(u.user, user.c_str());
   strcpy(u.pw, pw.c_str());
   u.gend = gend;
@@ -217,18 +218,26 @@ bool User::close(string pwd)
 
 bool User::exist(const string &name)
 {
-  const char *tmp = name.c_str();
+  String tmp;
+  bzero(tmp, MAXLEN);
+  strcpy(tmp, name.c_str());
   return server.exist(tmp);
 }
 
 bool User::follow(const string &name)
 {
-  return server.follow(name.c_str());
+  String tmp;
+  bzero(tmp, MAXLEN);
+  strcpy(tmp, name.c_str());
+  return server.follow(tmp);
 }
 
 bool User::unfollow(const string &name)
 {
-  return server.unfollow(name.c_str());
+  String tmp;
+  bzero(tmp, MAXLEN);
+  strcpy(tmp, name.c_str());  
+  return server.unfollow(tmp);
 }
 
 vector<string> User::follower()
@@ -243,7 +252,10 @@ vector<string> User::following()
 
 bool User::message(const string &content)
 {
-  return server.message(content.c_str());
+  String tmp;
+  bzero(tmp, MAXLEN);
+  strcpy(tmp, content.c_str());  
+  return server.message(tmp);
 }
 
 vector<Package> User::list(const size_t &number)
@@ -253,7 +265,11 @@ vector<Package> User::list(const size_t &number)
 
 vector<Package> User::list(const string &who, const size_t &number)
 {
-  return server.list(who.c_str(), number);
+  String tmp;
+  bzero(tmp, MAXLEN);
+  strcpy(tmp, who.c_str());
+
+  return server.list(tmp, number);
 }
 
 bool User::forward(const Message &message)

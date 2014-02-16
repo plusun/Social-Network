@@ -18,6 +18,8 @@ using std::ofstream;
 using std::vector;
 using std::string;
 
+#define USING_BTREE
+
 UserInfo::UserInfo(): pos(MAXACC)
 {
   fstream index;
@@ -32,6 +34,12 @@ UserInfo::UserInfo(): pos(MAXACC)
       n = 0;
       index.seekp(0);
       index.write((char *)&n, sizeof n);
+#ifdef USING_BTREE
+      Tree tree(snapFile);
+      size_t root = tree.offset();
+      index.write((char *)&root, sizeof root);
+#endif
+      index.close();
       fstream os;
       if (!openOrCreate(os, userFile, ios_base::in | ios_base::out))
 	throw Error("File error of user's data!");
@@ -41,17 +49,21 @@ UserInfo::UserInfo(): pos(MAXACC)
       os.write((char *)&empty, sizeof empty);
       os.close();
     }
-  index.close();
+ else
+   index.close();
 }
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 UserData UserInfo::search(const char *user, size_t &pos)
 {
   fstream is;
   if (!openOrCreate(is, userFile, ios_base::in | ios_base::out))
     throw Error("File error of user's data!");
-  is.seekg(0);
   UserData read;
   pos = MAXACC;
+#ifndef USING_BTREE
+  is.seekg(0);
   do
     {
       is.read((char *)&read, sizeof read);
@@ -65,6 +77,30 @@ UserData UserInfo::search(const char *user, size_t &pos)
     }
   is.close();
   return read;
+#else
+  fstream index;
+  if (!openOrCreate(index, indexFile, ios_base::in | ios_base::out))
+    throw Error("Error on openning index file!");
+  index.seekg(0);
+  size_t root;
+  index.read((char *)&root, sizeof root);
+  index.read((char *)&root, sizeof root);
+  index.close();
+  Tree tree(snapFile, root);
+  String name;
+  bzero(name, MAXLEN);
+  strcpy(name, user);
+  if (!tree.find(name, &pos))
+    {
+      pos = MAXACC;
+      is.close();
+      return read;
+    }
+  is.seekg(pos * sizeof read);
+  is.read((char *)&read, sizeof read);
+  is.close();
+  return read;
+#endif
 }
 
 bool UserInfo::exist(const char *name)
@@ -146,7 +182,18 @@ bool UserInfo::newAccount(UserData &user)
       index.write((char *)&n, sizeof n);
       if (!index)
 	throw Error("Error on writing index file!");
+#ifdef USING_BTREE
+      size_t root;
+      index.seekg(0);
+      index.read((char *)&root, sizeof root);
+      index.read((char *)&root, sizeof root);      
+#endif
       index.close();
+#ifdef USING_BTREE
+      Tree tree(snapFile, root);
+      if (!tree.insert(user.user, &pos))
+	throw Error("BTree insertion error on creating user!");
+#endif
       return true;
     }
   else
@@ -189,6 +236,19 @@ bool UserInfo::remove(const char *name)
   if (alter(empty))
     {
       pos = MAXACC;
+#ifdef USING_BTREE
+      fstream index;
+      if (!openOrCreate(index, indexFile, ios_base::in | ios_base::out))
+	throw Error("Error on openning index file!");
+      index.seekg(0);
+      size_t root;
+      index.read((char *)&root, sizeof root);
+      index.read((char *)&root, sizeof root);
+      index.close();
+      Tree tree(snapFile, root);
+      if (!tree.remove(empty.user))
+	throw Error("Error on BTree removing of removing account!");
+#endif
       return true;
     }
   else
@@ -203,7 +263,7 @@ bool UserInfo::valid()
 bool UserInfo::follow(const char *name)
 {
   size_t p;
-  UserData user = search(name, p);
+  search(name, p);
   return (p != MAXACC) && Relation::follow(pos, p);
 }
 
