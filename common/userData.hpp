@@ -8,6 +8,11 @@ const size_t MAXACC = (size_t)-1;
 
 typedef char String[MAXLEN];
 typedef enum {male, female} Gender;
+#define GEND 1
+#define BIRTHDAY 2
+#define TELEPHONE 4
+#define ADDR 8
+#define OTHERS 16
 
 typedef
 struct user

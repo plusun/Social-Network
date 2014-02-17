@@ -41,6 +41,7 @@ public:
   std::vector<Package> list(const std::string &, const size_t &);
   std::vector<std::string> follower();
   std::vector<std::string> following();
+  std::vector<UserData> find(const std::string &);
 private:
   std::string encrypt(const std::string &);
   std::string user, pw; // name and password

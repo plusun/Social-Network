@@ -23,6 +23,7 @@ public:
   std::vector<Package> list(const char *, size_t);
   std::vector<std::string> follower();
   std::vector<std::string> following();
+  std::vector<UserData> find(const char *);
   bool valid();
 private:
   typedef BTree<char, size_t, MAXLEN, 1> Tree;

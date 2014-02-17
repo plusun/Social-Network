@@ -276,3 +276,19 @@ bool User::forward(const Message &message)
 {
   return server.forward(message);
 }
+
+vector<UserData> User::find(const string &keyword)
+{
+  String tmp;
+  bzero(tmp, MAXLEN);
+  strcpy(tmp, keyword.c_str());
+  vector<UserData> list = server.find(tmp);
+  for (vector<UserData>::iterator itr = list.begin();
+       !list.empty() && itr != list.end(); ++itr)
+    if (string(itr->user) == user)
+      {
+	list.erase(itr);
+	itr = list.begin();
+      }
+  return list;
+}

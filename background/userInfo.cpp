@@ -49,8 +49,8 @@ UserInfo::UserInfo(): pos(MAXACC)
       os.write((char *)&empty, sizeof empty);
       os.close();
     }
- else
-   index.close();
+  else
+    index.close();
 }
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -186,14 +186,18 @@ bool UserInfo::newAccount(UserData &user)
       size_t root;
       index.seekg(0);
       index.read((char *)&root, sizeof root);
+      size_t position = index.tellg();
       index.read((char *)&root, sizeof root);      
 #endif
-      index.close();
 #ifdef USING_BTREE
       Tree tree(snapFile, root);
       if (!tree.insert(user.user, &pos))
 	throw Error("BTree insertion error on creating user!");
+      root = tree.offset();
+      index.seekp(position);
+      index.write((char *)&root, sizeof root);
 #endif
+      index.close();
       return true;
     }
   else
@@ -243,11 +247,15 @@ bool UserInfo::remove(const char *name)
       index.seekg(0);
       size_t root;
       index.read((char *)&root, sizeof root);
+      size_t position = index.tellg();
       index.read((char *)&root, sizeof root);
-      index.close();
       Tree tree(snapFile, root);
       if (!tree.remove(empty.user))
 	throw Error("Error on BTree removing of removing account!");
+      root = tree.offset();
+      index.seekp(position);
+      index.write((char *)&root, sizeof root);
+      index.close();
 #endif
       return true;
     }
@@ -412,6 +420,48 @@ vector<Package> UserInfo::list(const char *who, size_t num)
       content.read(package.content, MAXLEN);
       vec.push_back(package);
       pos = package.info.next;
+    }
+  return vec;
+}
+
+std::vector<UserData> UserInfo::find(const char *keyword)
+{
+  fstream is;
+  if (!openOrCreate(is, userFile, ios_base::in | ios_base::out))
+    throw Error("Error on openning user's data file!");
+  is.seekg(0);
+  vector<UserData> vec;
+  size_t number = strtol(keyword, NULL, 10);
+
+  UserData user;
+  is.read((char *)&user, sizeof user);
+  while (is)
+    {
+      bzero((char *)&user, sizeof user);
+      is.read((char *)&user, sizeof user);
+      if (!is)
+	break;
+      size_t pattern = 0;
+      if (user.y == number || user.m == number || user.d == number)
+	pattern |= BIRTHDAY;
+      if (string(user.user).find(keyword) != string::npos)
+	pattern |= OTHERS;
+      if (string(user.tele).find(keyword) != string::npos)
+	pattern |= TELEPHONE;
+      if (string(user.addr).find(keyword) != string::npos)
+	pattern |= ADDR;
+      if (((string("male").find(keyword) != string::npos ||
+	    string("man").find(keyword) != string::npos ||
+	    string("boy").find(keyword) != string::npos) && user.gend == male) ||
+	  ((string("female").find(keyword) != string::npos ||
+	    string("woman").find(keyword) != string::npos ||
+	    string("girl").find(keyword) != string::npos) && user.gend == female))
+	pattern |= GEND;
+      if (pattern)
+	{
+	  user.off = pattern;
+	  vec.push_back(user);
+	}
     }
   return vec;
 }

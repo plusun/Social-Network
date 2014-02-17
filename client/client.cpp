@@ -246,9 +246,9 @@ void createUser(const std::string &name, User &user)
 }
 
 string LIST[] = {"help", "info", "pw", "address", "birth", "tele", "gender", "close", "quit",
-		 "follow", "unfollow", "follower", "following", "message", "list", "forward", "visit", ""};
+		 "follow", "unfollow", "follower", "following", "message", "list", "forward", "visit", "search", ""};
 enum Order{HELP, INFO, PW, ADDRESS, BIRTH, TELE, GENDER, CLOSE, QUIT, FOLLOW, UNFOLLOW, FOLLOWER, FOLLOWING,
-	   MESSAGE, LISTS, FORWARD, VISIT, NONE};
+	   MESSAGE, LISTS, FORWARD, VISIT, SEARCH, NONE};
 
 Order getOrder(const string &order)
 {
@@ -263,6 +263,7 @@ void doOrder(string input, User &user, vector<Package> &messages)
   string old, pw, content;
   size_t code;
   vector<string> list;
+  vector<UserData> result;
   switch (getOrder(input))
     {
     case HELP:
@@ -407,6 +408,29 @@ void doOrder(string input, User &user, vector<Package> &messages)
 	    cout << " <forwarded from " << messages[i].info.from << ">" << flush;
 	  cout << " (" << i << ")" << endl;
 	}      
+      break;
+    case SEARCH:
+      cout << INDENT << "Keyword: " << flush;
+      getline(cin, content);
+      result = user.find(content);
+      if (result.size() > 0)
+	cout << endl;
+      for (vector<UserData>::iterator itr = result.begin();
+	   itr != result.end(); ++itr)
+	{
+	  cout << INDENT << itr->user << flush;
+	  if (itr->off != OTHERS)
+	    cout << " >" << flush;
+	  if (itr->off & GEND)
+	    cout << " Gender" << flush;
+	  if (itr->off & BIRTHDAY)
+	    cout << " Birthday:" << Date(itr->y, itr->m, itr->d) << flush;
+	  if (itr->off & TELEPHONE)
+	    cout << " Telephone:" << itr->tele << flush;
+	  if (itr->off & ADDR)
+	    cout << " Address:" << itr->addr << flush;
+	  cout << endl;
+	}
       break;
     case QUIT:
       cout << "Goodbye. :)" << endl;
