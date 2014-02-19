@@ -1,9 +1,14 @@
 OBJ = client.o user.o date.o error.o userInfo.o file.o relation.o message.o
+TESTOBJ = test.o user.o date.o error.o userInfo.o file.o relation.o message.o
 CC = g++
 FLAGS = -Wall -g
 
 client: $(OBJ)
 	$(CC) $(FLAGS) -o client $(OBJ)
+test: $(TESTOBJ)
+	$(CC) $(FLAGS) -o test $(TESTOBJ)
+test.o: test.cpp user.hpp
+	$(CC) $(FLAGS) -c test.cpp
 client.o: client.cpp user.hpp
 	$(CC) $(FLAGS) -c client.cpp
 user.o: user.hpp user.cpp ../common/date.hpp ../common/userData.hpp ../background/userInfo.hpp
@@ -27,7 +32,7 @@ file.o: ../background/file.hpp ../background/file.cpp
 	(cd ../background; make file.o)
 	cp ../background/file.o .
 tidy:
-	@rm -f *~ $(OBJ) *.dat
+	@rm -f *~ $(OBJ) $(TESTOBJ) *.dat
 .PHONY: clean
-clean:
-	@rm -f *~ $(OBJ) client *.dat
+clean: tidy
+	@rm -f test client

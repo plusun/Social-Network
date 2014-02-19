@@ -31,7 +31,7 @@ public:
   void set(UserData &);
   void set(const std::string &, const std::string &);
   bool newAccount(const std::string &, const std::string &);
-  bool open(const std::string &, const std::string &);
+
   bool exist(const std::string &);
   bool follow(const std::string &);
   bool unfollow(const std::string &);
