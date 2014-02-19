@@ -20,6 +20,8 @@ ofstream log("process.log", ios_base::out);
 const size_t N = 100000;
 
 #define CORRECTNESS
+//#define TIMETEST
+
 #ifdef CORRECTNESS
 bool correct();
 #endif
@@ -70,7 +72,7 @@ string randString()
 bool randBool()
 {
   const size_t TOTAL = 100;
-  const size_t LOT = 10; // deal of truth
+  const size_t LOT = 70; // deal of truth
   return rand() % TOTAL < LOT;
 }
 
@@ -106,6 +108,17 @@ bool correct()
 	if (!user.valid())
 	  return false;
       }
+  cout << list.size() << " accounts created." << endl;
+#ifndef TIMETEST
+  cout << "Testing for all accounts..." << flush;
+  for (size_t i = 0; i < list.size(); ++i)
+    {
+      User user(list[i], repertoire[list[i]]);
+      if (!user.valid())
+	return false;
+    }
+  cout << "Finished." << endl;
+#endif
   return true;
 }
 #endif
