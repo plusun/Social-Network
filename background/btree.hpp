@@ -49,7 +49,7 @@ private:
 
   struct Node
   {
-    size_t num; // number of child
+    size_t num; // number of children
     Key keys[MAXDATA + 1];
     Value values[MAXDATA + 1];
     size_t children[MAXKIDS + 1];
