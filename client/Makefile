@@ -32,7 +32,7 @@ file.o: ../background/file.hpp ../background/file.cpp
 	(cd ../background; make file.o)
 	cp ../background/file.o .
 tidy:
-	@rm -f *~ $(OBJ) $(TESTOBJ) *.dat
+	@rm -f *~ $(OBJ) $(TESTOBJ) *.dat *.log
 .PHONY: clean
 clean: tidy
 	@rm -f test client
