@@ -146,7 +146,8 @@ string getPassword(void)
 	}
       else if (c == '\177')
 	{
-	  pw.erase(pw.end() - 1);
+	  if (!pw.empty())
+	    pw.erase(pw.end() - 1);
 	}
     }
   while (c != '\n');
@@ -261,7 +262,7 @@ Order getOrder(const string &order)
 void doOrder(string input, User &user, vector<Package> &messages)
 {
   string old, pw, content;
-  size_t code;
+  size_t code, number;
   vector<string> list;
   vector<UserData> result;
   switch (getOrder(input))
@@ -349,8 +350,13 @@ void doOrder(string input, User &user, vector<Package> &messages)
 	cout << INDENT << "Fail! :(" << endl;
       break;
     case LISTS:
-      messages.clear();
-      messages = user.list(MAXMESSAGES);
+      cout << INDENT << "Number: " << flush;
+      getline(cin, content);
+      number = strtol(content.c_str(), NULL, 10);
+      if (number == 0)
+	number = MAXMESSAGES;
+      messages = user.list(number);
+      cout << endl;
       for (size_t i = 0; i < messages.size(); ++i)
 	{
 	  cout << INDENT << messages[i].info.user << ": " << flush

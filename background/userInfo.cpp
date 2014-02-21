@@ -396,6 +396,8 @@ vector<Package> UserInfo::list(size_t number)
 	  content.read(package.content, MAXLEN);
 	  memcpy((char *)&package.info, (char *)&message, sizeof message);
 	  vec.push_back(package);
+	  if (vec.size() == number)
+	    break;
 	}
     }
   return vec;

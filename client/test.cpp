@@ -6,6 +6,7 @@
 #include <ctime>
 #include <string>
 #include <fstream>
+#include <cstdio>
 
 using std::cout;
 using std::endl;
@@ -17,29 +18,45 @@ using std::ofstream;
 using std::ios_base;
 
 ofstream log("process.log", ios_base::out);
-const size_t N = 100000;
+ofstream result("time.result", ios_base::out);
+const size_t MAX = 100000;
+size_t N = MAX;
+size_t LOT = 70; // deal of truth
 
 #define CORRECTNESS
-//#define TIMETEST
+#define TIMETEST
 
 #ifdef CORRECTNESS
 bool correct();
 #endif
 
+#ifdef TIMETEST
+void step();
+#endif
 
 bool randBool();
 string randString();
+void clear();
 
 int main()
 {
   srand(time(NULL));
   
-#ifdef CORRECTNESS
+#ifndef TIMETEST
   cout << "Testing for correctness..." << endl;
+  clear();
   if (!correct())
     cout << "Fail. :(" << endl;
   else
     cout << "Success. :)" << endl;
+#else
+  for (N = 10; N < MAX; N *= 10)
+    step();
+  N /= 10;
+  const size_t STEP = N;
+  N += N;
+  for (; N <= MAX; N += STEP)
+    step();
 #endif
   
   return 0;
@@ -72,7 +89,6 @@ string randString()
 bool randBool()
 {
   const size_t TOTAL = 100;
-  const size_t LOT = 70; // deal of truth
   return rand() % TOTAL < LOT;
 }
 
@@ -107,9 +123,9 @@ bool correct()
 	log << list[off] << endl;
 	if (!user.valid())
 	  return false;
-      }
-  cout << list.size() << " accounts created." << endl;
+      }  
 #ifndef TIMETEST
+  cout << list.size() << " accounts created." << endl;
   cout << "Testing for all accounts..." << flush;
   for (size_t i = 0; i < list.size(); ++i)
     {
@@ -120,5 +136,33 @@ bool correct()
   cout << "Finished." << endl;
 #endif
   return true;
+}
+#endif
+
+void clear()
+{
+  remove(userFile);
+  remove(indexFile);
+  remove(snapFile);
+}
+
+#ifdef TIMETEST
+void step()
+{
+  clear();
+  cout << "Testing: N=" << N << ", LOT=" << LOT << "..." << flush;
+  clock_t t = clock();
+  bool right = correct();
+  t = clock() - t;
+  if (!right)
+    {
+      cout << "Failed. :(" << endl;
+      exit(0);
+    }
+  else
+    {
+      cout << "Success. :)" << endl;
+      result << N << '\t' << ((double)t) / CLOCKS_PER_SEC << endl;
+    }
 }
 #endif
