@@ -21,7 +21,7 @@ ofstream log("process.log", ios_base::out);
 ofstream result("time.result", ios_base::out);
 const size_t MAX = 100000;
 size_t N = MAX;
-size_t LOT = 70; // deal of truth
+size_t LOT = 10; // deal of truth
 
 #define CORRECTNESS
 #define TIMETEST

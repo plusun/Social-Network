@@ -43,7 +43,7 @@ public:
 
 private:
   static const size_t NULLNODE = 0;
-  static const size_t D = 5;
+  static const size_t D = 30;
   static const size_t MAXDATA = 2 * D;
   static const size_t MAXKIDS = MAXDATA + 1;
 
