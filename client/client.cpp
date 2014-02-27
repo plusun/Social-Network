@@ -405,9 +405,10 @@ void doOrder(string input, User &user, vector<Package> &messages)
       getline(cin, content);
       messages.clear();
       messages = user.list(content, MAXMESSAGES);
+      if (messages.size() > 0)
+	cout << endl;
       for (size_t i = 0; i < messages.size(); ++i)
 	{
-	  cout << endl;
 	  cout << INDENT << messages[i].info.user << ": " << flush
 	       << messages[i].content << flush;
 	  if (strcmp(messages[i].info.user, messages[i].info.from))
